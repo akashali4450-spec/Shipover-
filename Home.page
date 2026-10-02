@@ -1,0 +1,464 @@
+from pathlib import Path
+import zipfile, textwrap, os, json
+
+root = Path("/mnt/data/mywebsite")
+if root.exists():
+    import shutil
+    shutil.rmtree(root)
+
+(root / "admin").mkdir(parents=True)
+
+files = {
+"database.sql": r"""CREATE DATABASE IF NOT EXISTS mywebsite CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE mywebsite;
+
+CREATE TABLE IF NOT EXISTS admins (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(100) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS plans (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    amount DECIMAL(12,2) NOT NULL,
+    price DECIMAL(12,2) NOT NULL,
+    active TINYINT(1) NOT NULL DEFAULT 1,
+    sort_order INT NOT NULL DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS payment_methods (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    method_key VARCHAR(50) NOT NULL UNIQUE,
+    method_name VARCHAR(100) NOT NULL,
+    account_name VARCHAR(150) DEFAULT '',
+    account_number VARCHAR(100) DEFAULT '',
+    instructions TEXT DEFAULT '',
+    active TINYINT(1) NOT NULL DEFAULT 1,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS settings (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    setting_key VARCHAR(100) NOT NULL UNIQUE,
+    setting_value TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS users (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(150) NOT NULL,
+    phone VARCHAR(50) DEFAULT '',
+    email VARCHAR(150) DEFAULT '',
+    status ENUM('active','blocked') NOT NULL DEFAULT 'active',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS orders (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id INT UNSIGNED NULL,
+    plan_id INT UNSIGNED NULL,
+    customer_name VARCHAR(150) NOT NULL,
+    phone VARCHAR(50) NOT NULL,
+    payment_method VARCHAR(50) NOT NULL,
+    transaction_id VARCHAR(150) DEFAULT '',
+    amount DECIMAL(12,2) NOT NULL DEFAULT 0,
+    status ENUM('pending','paid','rejected','completed') NOT NULL DEFAULT 'pending',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
+    FOREIGN KEY (plan_id) REFERENCES plans(id) ON DELETE SET NULL
+);
+
+INSERT INTO plans (name, amount, price, active, sort_order) VALUES
+('400 Plan', 400, 150, 1, 1),
+('700 Plan', 700, 200, 1, 2),
+('1000 Plan', 1000, 350, 1, 3),
+('3000 Plan', 3000, 2000, 1, 4),
+('5000 Plan', 5000, 1500, 1, 5),
+('10000 Plan', 10000, 4000, 1, 6),
+('30000 Plan', 30000, 10000, 1, 7),
+('70000 Plan', 70000, 30000, 1, 8);
+
+INSERT INTO payment_methods (method_key, method_name, account_name, account_number, instructions, active) VALUES
+('easypaisa', 'Easypaisa', '', '', 'Payment instructions can be changed from admin panel.', 1),
+('jazzcash', 'JazzCash', '', '', 'Payment instructions can be changed from admin panel.', 1),
+('p2c', 'P2C', '', '', 'Payment instructions can be changed from admin panel.', 1);
+
+INSERT INTO settings (setting_key, setting_value) VALUES
+('site_name', 'My Plans'),
+('site_title', 'Plans & Payment'),
+('contact_number', ''),
+('whatsapp_number', ''),
+('logo_url', ''),
+('banner_text', 'Choose your plan'),
+('currency', 'Rs.')
+ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value);
+""",
+
+"config.php": r"""<?php
+declare(strict_types=1);
+
+session_start();
+
+$dbHost = 'localhost';
+$dbName = 'mywebsite';
+$dbUser = 'root';
+$dbPass = '';
+
+try {
+    $pdo = new PDO(
+        "mysql:host={$dbHost};dbname={$dbName};charset=utf8mb4",
+        $dbUser,
+        $dbPass,
+        [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            PDO::ATTR_EMULATE_PREPARES => false,
+        ]
+    );
+} catch (PDOException $e) {
+    exit('Database connection failed. Check admin/config.php');
+}
+
+function e(?string $value): string {
+    return htmlspecialchars($value ?? '', ENT_QUOTES, 'UTF-8');
+}
+
+function setting(PDO $pdo, string $key, string $default = ''): string {
+    $stmt = $pdo->prepare("SELECT setting_value FROM settings WHERE setting_key = ? LIMIT 1");
+    $stmt->execute([$key]);
+    $row = $stmt->fetch();
+    return $row ? (string)$row['setting_value'] : $default;
+}
+""",
+
+"index.php": r"""<?php
+require_once __DIR__ . '/admin/config.php';
+
+$siteName = setting($pdo, 'site_name', 'My Plans');
+$siteTitle = setting($pdo, 'site_title', 'Plans & Payment');
+$banner = setting($pdo, 'banner_text', 'Choose your plan');
+$currency = setting($pdo, 'currency', 'Rs.');
+$contact = setting($pdo, 'contact_number', '');
+$whatsapp = setting($pdo, 'whatsapp_number', '');
+
+$stmt = $pdo->query("SELECT * FROM plans WHERE active = 1 ORDER BY sort_order ASC, id ASC");
+$plans = $stmt->fetchAll();
+
+$pmStmt = $pdo->query("SELECT * FROM payment_methods WHERE active = 1 ORDER BY id ASC");
+$payments = $pmStmt->fetchAll();
+?>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title><?= e($siteTitle) ?></title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="topbar">
+    <div class="container nav">
+        <div class="brand"><?= e($siteName) ?></div>
+        <div class="nav-links">
+            <?php if ($contact): ?><a href="tel:<?= e($contact) ?>">Call</a><?php endif; ?>
+            <?php if ($whatsapp): ?><a href="https://wa.me/<?= preg_replace('/\D+/', '', $whatsapp) ?>" target="_blank">WhatsApp</a><?php endif; ?>
+            <a href="admin/login.php">Admin</a>
+        </div>
+    </div>
+</header>
+
+<section class="hero">
+    <div class="container">
+        <span class="badge">Plans</span>
+        <h1><?= e($banner) ?></h1>
+        <p>Select a plan and follow the payment instructions shown below.</p>
+    </div>
+</section>
+
+<main class="container">
+    <section class="plans">
+        <?php foreach ($plans as $plan): ?>
+        <article class="plan-card">
+            <h2><?= e($plan['name']) ?></h2>
+            <div class="amount"><?= e($currency) ?> <?= number_format((float)$plan['amount']) ?></div>
+            <div class="price">Price: <strong><?= e($currency) ?> <?= number_format((float)$plan['price']) ?></strong></div>
+            <a class="btn" href="#payment">Payment Details</a>
+        </article>
+        <?php endforeach; ?>
+    </section>
+
+    <section id="payment" class="payment-section">
+        <h2>Payment Methods</h2>
+        <div class="payment-grid">
+            <?php foreach ($payments as $payment): ?>
+            <div class="payment-card">
+                <h3><?= e($payment['method_name']) ?></h3>
+                <?php if ($payment['account_name']): ?>
+                    <p><b>Name:</b> <?= e($payment['account_name']) ?></p>
+                <?php endif; ?>
+                <?php if ($payment['account_number']): ?>
+                    <p><b>Number:</b> <?= e($payment['account_number']) ?></p>
+                <?php endif; ?>
+                <?php if ($payment['instructions']): ?>
+                    <p><?= nl2br(e($payment['instructions'])) ?></p>
+                <?php endif; ?>
+            </div>
+            <?php endforeach; ?>
+        </div>
+    </section>
+</main>
+
+<footer>
+    <div class="container">
+        <?= e($siteName) ?> &copy; <?= date('Y') ?>
+    </div>
+</footer>
+</body>
+</html>
+""",
+
+"style.css": r"""*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#f5f7fb;color:#172033}.container{width:min(1100px,92%);margin:auto}.topbar{background:#111827;color:#fff}.nav{min-height:64px;display:flex;align-items:center;justify-content:space-between}.brand{font-size:21px;font-weight:800}.nav-links{display:flex;gap:18px}.nav-links a{color:#fff;text-decoration:none}.hero{padding:70px 0;background:linear-gradient(135deg,#1e293b,#334155);color:#fff}.hero h1{font-size:clamp(32px,6vw,56px);margin:12px 0}.hero p{opacity:.85}.badge{display:inline-block;padding:7px 12px;border-radius:999px;background:#ffffff22}.plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:18px;padding:42px 0}.plan-card,.payment-card{background:#fff;border:1px solid #e5e7eb;border-radius:18px;padding:24px;box-shadow:0 8px 30px #0000000a}.plan-card h2{margin-top:0}.amount{font-size:30px;font-weight:800;margin:18px 0 8px}.price{color:#64748b;margin-bottom:20px}.btn{display:inline-block;text-decoration:none;background:#111827;color:#fff;padding:11px 16px;border-radius:10px}.payment-section{padding:20px 0 60px}.payment-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:18px}.payment-card h3{margin-top:0}footer{padding:25px 0;background:#111827;color:#fff}@media(max-width:600px){.nav{align-items:flex-start;padding:16px 0;gap:12px;flex-direction:column}.nav-links{gap:12px}.hero{padding:50px 0}}
+""",
+
+"admin/auth.php": r"""<?php
+require_once __DIR__ . '/config.php';
+
+if (empty($_SESSION['admin_id'])) {
+    header('Location: login.php');
+    exit;
+}
+""",
+
+"admin/login.php": r"""<?php
+require_once __DIR__ . '/config.php';
+
+if (!empty($_SESSION['admin_id'])) {
+    header('Location: dashboard.php');
+    exit;
+}
+
+$error = '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $username = trim($_POST['username'] ?? '');
+    $password = (string)($_POST['password'] ?? '');
+
+    $stmt = $pdo->prepare("SELECT * FROM admins WHERE username = ? LIMIT 1");
+    $stmt->execute([$username]);
+    $admin = $stmt->fetch();
+
+    if ($admin && password_verify($password, $admin['password'])) {
+        session_regenerate_id(true);
+        $_SESSION['admin_id'] = $admin['id'];
+        $_SESSION['admin_username'] = $admin['username'];
+        header('Location: dashboard.php');
+        exit;
+    }
+
+    $error = 'Invalid username or password.';
+}
+?>
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Admin Login</title><link rel="stylesheet" href="admin.css"></head>
+<body class="login-page"><div class="login-box"><h1>Admin Login</h1><?php if($error): ?><div class="alert error"><?=e($error)?></div><?php endif; ?><form method="post"><label>Username</label><input name="username" required><label>Password</label><input type="password" name="password" required><button>Login</button></form><p><a href="../index.php">Back to website</a></p></div></body></html>
+""",
+
+"admin/logout.php": r"""<?php
+require_once __DIR__ . '/config.php';
+$_SESSION = [];
+if (ini_get('session.use_cookies')) {
+    $params = session_get_cookie_params();
+    setcookie(session_name(), '', time() - 42000, $params['path'], $params['domain'], $params['secure'], $params['httponly']);
+}
+session_destroy();
+header('Location: login.php');
+exit;
+""",
+
+"admin/create-admin.php": r"""<?php
+require_once __DIR__ . '/config.php';
+
+$message = '';
+$error = '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $username = trim($_POST['username'] ?? '');
+    $password = (string)($_POST['password'] ?? '');
+
+    if ($username === '' || strlen($password) < 6) {
+        $error = 'Username is required and password must be at least 6 characters.';
+    } else {
+        $check = $pdo->prepare("SELECT id FROM admins WHERE username = ? LIMIT 1");
+        $check->execute([$username]);
+
+        if ($check->fetch()) {
+            $error = 'This username already exists.';
+        } else {
+            $hash = password_hash($password, PASSWORD_DEFAULT);
+            $stmt = $pdo->prepare("INSERT INTO admins (username,password) VALUES (?,?)");
+            $stmt->execute([$username, $hash]);
+            $message = 'Admin created successfully. Delete create-admin.php now, then login.';
+        }
+    }
+}
+?>
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Create Admin</title><link rel="stylesheet" href="admin.css"></head>
+<body class="login-page"><div class="login-box"><h1>Create Admin</h1>
+<?php if($message): ?><div class="alert success"><?=e($message)?></div><?php endif; ?>
+<?php if($error): ?><div class="alert error"><?=e($error)?></div><?php endif; ?>
+<form method="post"><label>Username</label><input name="username" required><label>Password</label><input type="password" name="password" minlength="6" required><button>Create Admin</button></form>
+<p class="muted">After setup, delete this file from the server.</p></div></body></html>
+""",
+
+"admin/header.php": r"""<?php
+require_once __DIR__ . '/auth.php';
+?><!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Admin Panel</title><link rel="stylesheet" href="admin.css"></head><body>
+<header class="admin-top"><div><strong>Admin Panel</strong></div><nav><a href="dashboard.php">Dashboard</a><a href="plans.php">Plans</a><a href="payments.php">Payments</a><a href="orders.php">Orders</a><a href="users.php">Users</a><a href="settings.php">Settings</a><a href="logout.php">Logout</a></nav></header><main class="admin-container">
+""",
+
+"admin/footer.php": r"""</main></body></html>""",
+
+"admin/dashboard.php": r"""<?php require_once __DIR__ . '/auth.php';
+$stats = [];
+$stats['plans'] = (int)$pdo->query("SELECT COUNT(*) FROM plans")->fetchColumn();
+$stats['users'] = (int)$pdo->query("SELECT COUNT(*) FROM users")->fetchColumn();
+$stats['orders'] = (int)$pdo->query("SELECT COUNT(*) FROM orders")->fetchColumn();
+$stats['pending'] = (int)$pdo->query("SELECT COUNT(*) FROM orders WHERE status='pending'")->fetchColumn();
+require __DIR__ . '/header.php';
+?>
+<h1>Dashboard</h1><div class="cards">
+<div class="stat"><span>Plans</span><b><?= $stats['plans'] ?></b></div>
+<div class="stat"><span>Users</span><b><?= $stats['users'] ?></b></div>
+<div class="stat"><span>Orders</span><b><?= $stats['orders'] ?></b></div>
+<div class="stat"><span>Pending Orders</span><b><?= $stats['pending'] ?></b></div>
+</div>
+<div class="panel"><h2>Quick Links</h2><p>Manage prices, payment numbers, website settings, users and orders from the menu above.</p></div>
+<?php require __DIR__ . '/footer.php'; ?>
+""",
+
+"admin/plans.php": r"""<?php
+require_once __DIR__ . '/auth.php';
+$message = '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $action = $_POST['action'] ?? '';
+
+    if ($action === 'save') {
+        $id = (int)$_POST['id'];
+        $name = trim($_POST['name'] ?? '');
+        $amount = (float)$_POST['amount'];
+        $price = (float)$_POST['price'];
+        $active = isset($_POST['active']) ? 1 : 0;
+        $order = (int)$_POST['sort_order'];
+
+        $stmt = $pdo->prepare("UPDATE plans SET name=?, amount=?, price=?, active=?, sort_order=? WHERE id=?");
+        $stmt->execute([$name,$amount,$price,$active,$order,$id]);
+        $message = 'Plan updated.';
+    }
+
+    if ($action === 'add') {
+        $stmt = $pdo->prepare("INSERT INTO plans (name,amount,price,active,sort_order) VALUES (?,?,?,?,?)");
+        $stmt->execute([
+            trim($_POST['name'] ?? 'New Plan'),
+            (float)$_POST['amount'],
+            (float)$_POST['price'],
+            1,
+            (int)$_POST['sort_order']
+        ]);
+        $message = 'Plan added.';
+    }
+
+    if ($action === 'delete') {
+        $stmt = $pdo->prepare("DELETE FROM plans WHERE id=?");
+        $stmt->execute([(int)$_POST['id']]);
+        $message = 'Plan deleted.';
+    }
+}
+$plans = $pdo->query("SELECT * FROM plans ORDER BY sort_order,id")->fetchAll();
+require __DIR__ . '/header.php';
+?>
+<h1>Plans & Prices</h1>
+<?php if($message): ?><div class="alert success"><?=e($message)?></div><?php endif; ?>
+
+<div class="panel">
+<h2>Add Plan</h2>
+<form method="post" class="form-grid">
+<input type="hidden" name="action" value="add">
+<input name="name" placeholder="Plan name" required>
+<input name="amount" type="number" step="0.01" placeholder="Plan amount" required>
+<input name="price" type="number" step="0.01" placeholder="Your price" required>
+<input name="sort_order" type="number" value="99">
+<button>Add Plan</button>
+</form>
+</div>
+
+<div class="panel">
+<h2>Existing Plans</h2>
+<div class="table-wrap"><table><tr><th>Name</th><th>Plan</th><th>Price</th><th>Active</th><th>Order</th><th>Action</th></tr>
+<?php foreach($plans as $p): ?><tr><form method="post"><input type="hidden" name="action" value="save"><input type="hidden" name="id" value="<?= (int)$p['id']?>">
+<td><input name="name" value="<?=e($p['name'])?>"></td><td><input name="amount" type="number" step="0.01" value="<?=e((string)$p['amount'])?>"></td><td><input name="price" type="number" step="0.01" value="<?=e((string)$p['price'])?>"></td><td><input type="checkbox" name="active" <?= $p['active']?'checked':'' ?>></td><td><input name="sort_order" type="number" value="<?= (int)$p['sort_order']?>"></td><td><button>Save</button> <button class="danger" name="action" value="delete" onclick="return confirm('Delete this plan?')">Delete</button></td></form></tr><?php endforeach; ?>
+</table></div></div>
+<?php require __DIR__ . '/footer.php'; ?>
+""",
+
+"admin/payments.php": r"""<?php
+require_once __DIR__ . '/auth.php';
+$message='';
+if($_SERVER['REQUEST_METHOD']==='POST'){
+    $stmt=$pdo->prepare("UPDATE payment_methods SET method_name=?,account_name=?,account_number=?,instructions=?,active=? WHERE id=?");
+    $stmt->execute([
+        trim($_POST['method_name']??''),
+        trim($_POST['account_name']??''),
+        trim($_POST['account_number']??''),
+        trim($_POST['instructions']??''),
+        isset($_POST['active'])?1:0,
+        (int)$_POST['id']
+    ]);
+    $message='Payment details saved.';
+}
+$payments=$pdo->query("SELECT * FROM payment_methods ORDER BY id")->fetchAll();
+require __DIR__ . '/header.php';
+?>
+<h1>Payment Methods</h1>
+<?php if($message): ?><div class="alert success"><?=e($message)?></div><?php endif; ?>
+<?php foreach($payments as $p): ?>
+<div class="panel"><form method="post">
+<input type="hidden" name="id" value="<?= (int)$p['id'] ?>">
+<label>Method Name</label><input name="method_name" value="<?=e($p['method_name'])?>">
+<label>Account Name</label><input name="account_name" value="<?=e($p['account_name'])?>">
+<label>Account / Number</label><input name="account_number" value="<?=e($p['account_number'])?>">
+<label>Instructions</label><textarea name="instructions" rows="4"><?=e($p['instructions'])?></textarea>
+<label><input type="checkbox" name="active" <?= $p['active']?'checked':'' ?>> Show on website</label>
+<button>Save <?=e($p['method_name'])?></button>
+</form></div>
+<?php endforeach; ?>
+<?php require __DIR__ . '/footer.php'; ?>
+""",
+
+"admin/settings.php": r"""<?php
+require_once __DIR__ . '/auth.php';
+$message='';
+if($_SERVER['REQUEST_METHOD']==='POST'){
+    $keys=['site_name','site_title','contact_number','whatsapp_number','logo_url','banner_text','currency'];
+    foreach($keys as $key){
+        $value=trim($_POST[$key]??'');
+        $stmt=$pdo->prepare("INSERT INTO settings(setting_key,setting_value) VALUES(?,?) ON DUPLICATE KEY UPDATE setting_value=VALUES(setting_value)");
+        $stmt->execute([$key,$value]);
+    }
+    $message='Settings saved.';
+}
+$settings=[];
+foreach($pdo->query("SELECT setting_key,setting_value FROM settings")->fetchAll() as $row){$settings[$row['setting_key']]=$row['setting_value'];}
+require __DIR__ . '/header.php';
+?>
+<h1>Website Settings</h1>
+<?php if($message): ?><div class="alert success"><?=e($message)?></div><?php endif; ?>
+<div class="panel"><form method="post">
+<label>Website Name</label><input name="site_name" value="<?=e($settings['site_name']??'')?>">
+<label>Website Title</label><input name="site_title" value="<?=e($settings['site_title']??'')?>">
+<label>Banner Text</label><input name="banner_text" value="<?=e($settings['banner_text']??'')?>">
+<label>Currency</label><input name="currency" value="<?=e($settings['currency']??'Rs.')?>">
+<label>Contact Number</label><input name="contact_number" value="<?=e($settings['contact_number']??'')?>">
+<l
