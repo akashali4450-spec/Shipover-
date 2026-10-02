@@ -1,0 +1,227 @@
+<?php
+$plans = [
+    ['amount' => 'Rs400',   'price' => 'Rs150',   'rate' => '0.80%'],
+    ['amount' => 'Rs700',   'price' => 'Rs200',   'rate' => '0.91%'],
+    ['amount' => 'Rs1,000', 'price' => 'Rs350',   'rate' => '1.00%'],
+    ['amount' => 'Rs3,000', 'price' => 'Rs2,000', 'rate' => '1.08%'],
+    ['amount' => 'Rs5,000', 'price' => 'Rs1,500', 'rate' => '1.16%'],
+    ['amount' => 'Rs10,000','price' => 'Rs4,000', 'rate' => '1.30%'],
+    ['amount' => 'Rs30,000','price' => 'Rs10,000','rate' => '1.45%'],
+    ['amount' => 'Rs70,000','price' => 'Rs30,000','rate' => '1.60%'],
+];
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div class="app">
+
+    <!-- TOP HEADER -->
+    <header class="topbar">
+        <div class="brand">
+            <div class="logo-box">A</div>
+            <div>
+                <strong>MyApp</strong>
+                <small>Investment Platform</small>
+            </div>
+        </div>
+
+        <div class="top-link">Home</div>
+    </header>
+
+
+    <!-- ACCOUNT CARD -->
+    <section class="account-card">
+
+        <div class="account-top">
+            <div class="avatar">
+                A
+            </div>
+
+            <div class="account-info">
+                <h3>Welcome</h3>
+                <p>Account: 03001234567</p>
+            </div>
+
+            <button class="withdraw-btn">
+                Withdraw
+            </button>
+        </div>
+
+        <div class="account-bottom">
+
+            <div>
+                <span>Balance</span>
+                <strong>Rs200</strong>
+            </div>
+
+            <div>
+                <span>Total Income</span>
+                <strong>Rs0</strong>
+            </div>
+
+            <div>
+                <span>Team Income</span>
+                <strong>Rs0</strong>
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- BANNER -->
+    <section class="banner">
+
+        <div class="banner-content">
+            <span class="banner-small">WELCOME TO</span>
+            <h1>MyApp</h1>
+            <p>Your account, in focus.</p>
+
+            <button>
+                Explore Plans
+            </button>
+        </div>
+
+        <div class="banner-shape shape-one"></div>
+        <div class="banner-shape shape-two"></div>
+
+    </section>
+
+
+    <!-- QUICK STATS -->
+    <section class="stats">
+
+        <div class="stat-box">
+            <strong>0</strong>
+            <span>Today Income</span>
+        </div>
+
+        <div class="stat-box">
+            <strong>17</strong>
+            <span>Total Orders</span>
+        </div>
+
+        <div class="stat-box">
+            <strong>33</strong>
+            <span>Team Members</span>
+        </div>
+
+        <div class="stat-box">
+            <strong>51</strong>
+            <span>Total Income</span>
+        </div>
+
+    </section>
+
+
+    <!-- PRODUCTS TITLE -->
+    <div class="section-title">
+        <div>
+            <h2>Products</h2>
+            <p>Choose an investment plan</p>
+        </div>
+
+        <span>View All</span>
+    </div>
+
+
+    <!-- PRODUCTS -->
+    <section class="products">
+
+        <?php foreach ($plans as $plan): ?>
+
+            <div class="product-card">
+
+                <div class="product-image">
+                    <div class="mountain"></div>
+                    <div class="sun"></div>
+                </div>
+
+                <div class="product-details">
+
+                    <h3>
+                        Exploration and production
+                    </h3>
+
+                    <div class="product-rate">
+                        <?= $plan['rate'] ?>
+                        <span>Daily income</span>
+                    </div>
+
+                    <div class="product-row">
+                        <div>
+                            <small>Investment</small>
+                            <strong><?= $plan['amount'] ?></strong>
+                        </div>
+
+                        <div>
+                            <small>Price</small>
+                            <strong><?= $plan['price'] ?></strong>
+                        </div>
+                    </div>
+
+                    <div class="product-bottom">
+
+                        <span>
+                            Validity: <b>30 Days</b>
+                        </span>
+
+                        <button onclick="buyPlan('<?= $plan['amount'] ?>')">
+                            Details
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        <?php endforeach; ?>
+
+    </section>
+
+
+    <!-- BOTTOM NAVIGATION -->
+    <nav class="bottom-nav">
+
+        <a href="index.php" class="nav-item active">
+            <div class="nav-icon">⌂</div>
+            <span>Home</span>
+        </a>
+
+        <a href="#" class="nav-item">
+            <div class="nav-icon">▣</div>
+            <span>Orders</span>
+        </a>
+
+        <a href="#" class="nav-item">
+            <div class="nav-icon">♟</div>
+            <span>Team</span>
+        </a>
+
+        <a href="#" class="nav-item">
+            <div class="nav-icon">♙</div>
+            <span>Me</span>
+        </a>
+
+    </nav>
+
+</div>
+
+
+<script>
+function buyPlan(amount) {
+    alert("Selected Plan: " + amount);
+}
+</script>
+
+</body>
+</html>
