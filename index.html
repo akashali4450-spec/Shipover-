@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>SHIPOVER - Login & Register</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #eef4ff, #f8fbff);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 420px;
+      text-align: center;
+    }
+
+    .logo {
+      font-size: 38px;
+      font-weight: 800;
+      color: #111827;
+      margin-bottom: 8px;
+      letter-spacing: 1px;
+    }
+
+    .logo span {
+      color: #1677ff;
+    }
+
+    .tagline {
+      color: #6b7280;
+      margin-bottom: 25px;
+      font-size: 15px;
+    }
+
+    .card {
+      background: #ffffff;
+      padding: 28px;
+      border-radius: 18px;
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.10);
+      text-align: left;
+    }
+
+    .tabs {
+      display: flex;
+      margin-bottom: 25px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .tab {
+      flex: 1;
+      border: none;
+      background: transparent;
+      padding: 13px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      color: #6b7280;
+      border-bottom: 3px solid transparent;
+    }
+
+    .tab.active {
+      color: #1677ff;
+      border-bottom-color: #1677ff;
+    }
+
+    .form-group {
+      margin-bottom: 17px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 7px;
+      color: #374151;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    input {
+      width: 100%;
+      padding: 13px 14px;
+      border: 1px solid #d1d5db;
+      border-radius: 10px;
+      outline: none;
+      font-size: 15px;
+      background: #fff;
+    }
+
+    input:focus {
+      border-color: #1677ff;
+      box-shadow: 0 0 0 3px rgba(22, 119, 255, 0.10);
+    }
+
+    .main-btn {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 10px;
+      background: #1677ff;
+      color: white;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 5px;
+    }
+
+    .main-btn:hover {
+      background: #075fd6;
+    }
+
+    .message {
+      display: none;
+      padding: 11px;
+      border-radius: 9px;
+      margin-bottom: 15px;
+      font-size: 14px;
+      text-align: center;
+    }
+
+    .message.show {
+      display: block;
+    }
+
+    .message.success {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .message.error {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .copyright {
+      margin-top: 22px;
+      color: #9ca3af;
+      font-size: 13px;
+    }
+
+    @media (max-width: 480px) {
+      body {
+        padding: 15px;
+      }
+
+      .logo {
+        font-size: 32px;
+      }
+
+      .card {
+        padding: 22px 18px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+
+    <div class="logo">
+      SHIP<span>OVER</span>
+    </div>
+
+    <p class="tagline">
+      Welcome to SHIPOVER
+    </p>
+
+    <div class="card">
+
+      <div class="tabs">
+        <button id="loginTab" class="tab active">
+          Login
+        </button>
+
+        <button id="registerTab" class="tab">
+          Register
+        </button>
+      </div>
+
+      <div id="message" class="message"></div>
+
+      <!-- LOGIN -->
+      <form id="loginForm">
+
+        <div class="form-group">
+          <label>Phone Number</label>
+
+          <input
+            type="tel"
+            id="loginPhone"
+            placeholder="03XXXXXXXXX"
+            required
+          >
+        </div>
+
+        <div class="form-group">
+          <label>Password</label>
+
+          <input
+            type="password"
+            id="loginPassword"
+            placeholder="Enter your password"
+            required
+          >
+        </div>
+
+        <button type="submit" class="main-btn">
+          Login
+        </button>
+
+      </form>
+
+
+      <!-- REGISTER -->
+      <form id="registerForm" class="hidden">
+
+        <div class="form-group">
+          <label>Full Name</label>
+
+          <input
+            type="text"
+            id="registerName"
+            placeholder="Enter your full name"
+            required
+          >
+        </div>
+
+        <div class="form-group">
+          <label>Phone Number</label>
+
+          <input
+            type="tel"
+            id="registerPhone"
+            placeholder="03XXXXXXXXX"
+            required
+          >
+        </div>
+
+        <div class="form-group">
+          <label>Password</label>
+
+          <input
+            type="password"
+            id="registerPassword"
+            placeholder="Minimum 6 characters"
+            minlength="6"
+            required
+          >
+        </div>
+
+        <div class="form-group">
+          <label>Confirm Password</label>
+
+          <input
+            type="password"
+            id="registerConfirm"
+            placeholder="Confirm your password"
+            minlength="6"
+            required
+          >
+        </div>
+
+        <button type="submit" class="main-btn">
+          Create Account
+        </button>
+
+      </form>
+
+    </div>
+
+    <p class="copyright">
+      © <span id="year"></span> SHIPOVER. All rights reserved.
+    </p>
+
+  </div>
+
+
+  <script>
+    const STORAGE_KEY = "shipover_users";
+    const SESSION_KEY = "shipover_current_user";
+
+    const loginTab = document.getElementById("loginTab");
+    const registerTab = document.getElementById("registerTab");
+
+    const loginForm = document.getElementById("loginForm");
+    const registerForm = document.getElementById("registerForm");
+
+    const message = document.getElementById("message");
+
+    function showMessage(text, type) {
+      message.textContent = text;
+      message.className = "message show " + type;
+    }
+
+    function clearMessage() {
+      message.textContent = "";
+      message.className = "message";
+    }
+
+    loginTab.addEventListener("click", function () {
+      loginTab.classList.add("active");
+      registerTab.classList.remove("active");
+
+      loginForm.classList.remove("hidden");
+      registerForm.classList.add("hidden");
+
+      clearMessage();
+    });
+
+    registerTab.addEventListener("click", function () {
+      registerTab.classList.add("active");
+      loginTab.classList.remove("active");
+
+      registerForm.classList.remove("hidden");
+      loginForm.classList.add("hidden");
+
+      clearMessage();
+    });
+
+
+    // REGISTER
+    registerForm.addEventListener("submit", function (e) {
+      e.preventDefault();
+
+      const name = document
+        .getElementById("registerName")
+        .value.trim();
+
+      const phone = document
+        .getElementById("registerPhone")
+        .value.trim();
+
+      const password = document
+        .getElementById("registerPassword")
+        .value;
+
+      const confirmPassword = document
+        .getElementById("registerConfirm")
+        .value;
+
+      if (password !== confirmPassword) {
+        showMessage(
+          "Passwords do not match.",
+          "error"
+        );
+        return;
+      }
+
+      let users =
+        JSON.parse(
+          localStorage.getItem(STORAGE_KEY)
+        ) || [];
+
+      const exists = users.some(
+        user => user.phone === phone
+      );
+
+      if (exists) {
+        showMessage(
+          "This phone number is already registered.",
+          "error"
+        );
+        return;
+      }
+
+      users.push({
+        name: name,
+        phone: phone,
+        password: password
+      });
+
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify(users)
+      );
+
+      showMessage(
+        "Account created successfully. Please login.",
+        "success"
+      );
+
+      registerForm.reset();
+
+      setTimeout(() => {
+        loginTab.click();
+      }, 1000);
+    });
+
+
+    // LOGIN
+    loginForm.addEventListener("submit", function (e) {
+      e.preventDefault();
+
+      const phone = document
+        .getElementById("loginPhone")
+        .value.trim();
+
+      const password = document
+        .getElementById("loginPassword")
+        .value;
+
+      const users =
+        JSON.parse(
+          localStorage.getItem(STORAGE_KEY)
+        ) || [];
+
+      const user = users.find(
+        u =>
+          u.phone === phone &&
+          u.password === password
+      );
+
+      if (!user) {
+        showMessage(
+          "Invalid phone number or password.",
+          "error"
+        );
+        return;
+      }
+
+      localStorage.setItem(
+        SESSION_KEY,
+        JSON.stringify({
+          name: user.name,
+          phone: user.phone
+        })
+      );
+
+      showMessage(
+        "Login successful. Opening home page...",
+        "success"
+      );
+
+      setTimeout(() => {
+        window.location.href = "home.html";
+      }, 700);
+    });
+
+
+    // YEAR
+    document.getElementById("year").textContent =
+      new Date().getFullYear();
+  </script>
+
+</body>
+</html>
+
+GitHub میں بس اسی کو "index.html" کے نام سے اپلوڈ کرنا ہے۔
+اس ورژن میں CSS اور JavaScript بھی اسی فائل کے اندر ہیں، اس لیے الگ "style.css" یا "script.js" کی ضرورت نہیں ہوگی۔
+
+اور اوپر Login / Register پر کلک کرنے سے دونوں فارم اسی صفحے پر تبدیل ہوں گے۔
