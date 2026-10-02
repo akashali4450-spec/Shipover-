@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shipover - Online Work</title>
+
+<style>
+*{
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
+}
+
+body{
+  font-family:Arial,sans-serif;
+  background:#f4f6f3;
+  color:#123c30;
+}
+
+header{
+  background:#063d2f;
+  color:white;
+  padding:18px;
+  text-align:center;
+}
+
+.logo{
+  font-size:25px;
+  font-weight:bold;
+}
+
+.container{
+  max-width:900px;
+  margin:auto;
+  padding:15px;
+}
+
+.hero{
+  margin-top:15px;
+  padding:30px 20px;
+  border-radius:22px;
+  color:white;
+  background:linear-gradient(135deg,#063d2f,#087253);
+  text-align:center;
+}
+
+.hero h1{
+  font-size:32px;
+  margin-bottom:10px;
+}
+
+.hero p{
+  line-height:1.6;
+  margin-bottom:20px;
+}
+
+.btn{
+  display:inline-block;
+  border:0;
+  border-radius:12px;
+  padding:13px 20px;
+  background:#f5bb28;
+  color:#173b30;
+  font-weight:bold;
+  text-decoration:none;
+  cursor:pointer;
+}
+
+.whatsapp{
+  display:block;
+  margin-top:15px;
+}
+
+.card{
+  background:white;
+  margin-top:18px;
+  padding:20px;
+  border-radius:20px;
+  box-shadow:0 3px 15px rgba(0,0,0,.08);
+}
+
+.card h2{
+  margin-bottom:12px;
+}
+
+input{
+  width:100%;
+  padding:14px;
+  border:1px solid #ccd6cf;
+  border-radius:12px;
+  font-size:16px;
+  margin:10px 0;
+}
+
+.result{
+  background:#edf6ef;
+  padding:18px;
+  border-radius:14px;
+  margin-top:10px;
+}
+
+.result strong{
+  font-size:24px;
+}
+
+.plans{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:12px;
+}
+
+.plan{
+  border:1px solid #dce5df;
+  border-radius:16px;
+  padding:15px;
+  background:#fbfcfa;
+}
+
+.plan h3{
+  font-size:22px;
+  margin:6px 0;
+}
+
+.estimate{
+  color:#237052;
+  font-weight:bold;
+  margin-top:8px;
+}
+
+.note{
+  background:#fff5d8;
+  border-left:4px solid #e4ae22;
+  padding:13px;
+  border-radius:8px;
+  font-size:13px;
+  line-height:1.5;
+  margin-top:15px;
+}
+
+.feature{
+  padding:13px 0;
+  border-bottom:1px solid #e8ece8;
+}
+
+.feature:last-child{
+  border-bottom:0;
+}
+
+footer{
+  text-align:center;
+  padding:25px 10px;
+  color:#68756f;
+  font-size:13px;
+}
+
+@media(max-width:600px){
+  .hero h1{
+    font-size:27px;
+  }
+
+  .plans{
+    grid-template-columns:1fr 1fr;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <div class="logo">SHIPOVER</div>
+  <div>Online Work Platform</div>
+</header>
+
+<div class="container">
+
+  <!-- HOME HERO -->
+  <section class="hero">
+
+    <h1>Online Work</h1>
+
+    <p>
+      Welcome to Shipover Online Work Platform.
+      Explore our plans, calculator and latest updates.
+    </p>
+
+    <a
+      class="btn whatsapp"
+      href="https://whatsapp.com/channel/0029Vb9OYju9RZAd184WBG3L"
+      target="_blank">
+      Join Our WhatsApp Channel
+    </a>
+
+  </section>
+
+
+  <!-- CALCULATOR -->
+  <section class="card">
+
+    <h2>Estimated Return Calculator</h2>
+
+    <p>
+      Enter an amount below to see the illustrative estimate.
+    </p>
+
+    <input
+      id="amount"
+      type="number"
+      placeholder="Enter PKR amount"
+      oninput="calculateReturn()">
+
+    <div class="result">
+
+      <div>Estimated Daily Return</div>
+
+      <strong id="result">
+        PKR 0
+      </strong>
+
+    </div>
+
+    <div class="note">
+      This calculator is for demonstration/estimate purposes only.
+      Returns are not guaranteed and actual results may vary.
+      No payment or investment is processed through this demo page.
+    </div>
+
+  </section>
+
+
+  <!-- PLANS -->
+  <section class="card">
+
+    <h2>Plans</h2>
+
+    <div class="plans">
+
+      <div class="plan">
+        <div>Example Plan</div>
+        <h3>PKR 300</h3>
+        <div class="estimate">Estimated: PKR 60/day</div>
+      </div>
+
+      <div class="plan">
+        <div>Example Plan</div>
+        <h3>PKR 500</h3>
+        <div class="estimate">Estimated: PKR 100/day</div>
+      </div>
+
+      <div class="plan">
+        <div>Example Plan</div>
+        <h3>PKR 600</h3>
+        <div class="estimate">Estimated: PKR 120/day</div>
+      </div>
+
+      <div class="plan">
+        <div>Example Plan</div>
+        <h3>PKR 1,000</h3>
+        <div class="estimate">Estimated: PKR 200/day</div>
+      </div>
+
+      <div class="plan">
+        <div>Example Plan</div>
+        <h3>PKR 1,500</h3>
+        <div class="estimate">Estimated: PKR 300/day</div>
+      </div>
+
+      <div class="plan">
+        <div>Example Plan</div>
+        <h3>PKR 2,000</h3>
+        <div class="estimate">Estimated: PKR 400/day</div>
+      </div>
+
+      <div class="plan">
+        <div>Example Plan</div>
+        <h3>PKR 3,000</h3>
+        <div class="estimate">Estimated: PKR 600/day</div>
+      </div>
+
+      <div class="plan">
+        <div>Example Plan</div>
+        <h3>PKR 4,000</h3>
+        <div class="estimate">Estimated: PKR 800/day</div>
+      </div>
+
+      <div class="plan">
+        <div>Example Plan</div>
+        <h3>PKR 5,000</h3>
+        <div class="estimate">Estimated: PKR 1,000/day</div>
+      </div>
+
+      <div class="plan">
+        <div>Example Plan</div>
+        <h3>PKR 10,000</h3>
+        <div class="estimate">Estimated: PKR 2,000/day</div>
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- HOW IT WORKS -->
+  <section class="card">
+
+    <h2>How It Works</h2>
+
+    <div class="feature">
+      <b>01 — Create Your Account</b>
+      <p>Register your personal account.</p>
+    </div>
+
+    <div class="feature">
+      <b>02 — Explore Plans</b>
+      <p>View the available example plans and estimates.</p>
+    </div>
+
+    <div class="feature">
+      <b>03 — Check Your Dashboard</b>
+      <p>Manage your profile and account information.</p>
+    </div>
+
+    <div class="feature">
+      <b>04 — Stay Updated</b>
+      <p>Join our WhatsApp Channel for updates.</p>
+    </div>
+
+  </section>
+
+
+  <!-- COMPANY POLICY -->
+  <section class="card">
+
+    <h2>Company Policy</h2>
+
+    <p>
+      Please review all terms, risks and conditions before
+      participating in any real financial activity.
+    </p>
+
+    <div class="note">
+      Estimated returns shown on this page are examples only.
+      They are not a promise or guarantee of profit.
+    </div>
+
+  </section>
+
+
+  <!-- CONTACT -->
+  <section class="card">
+
+    <h2>Contact & Updates</h2>
+
+    <p>
+      For information and updates, join our official WhatsApp Channel.
+    </p>
+
+    <br>
+
+    <a
+      class="btn"
+      href="https://whatsapp.com/channel/0029Vb9OYju9RZAd184WBG3L"
+      target="_blank">
+      Join Channel
+    </a>
+
+  </section>
+
+</div>
+
+
+<footer>
+  © 2026 Shipover — Online Work
+</footer>
+
+
+<script>
+
+function calculateReturn(){
+
+  let amount =
+    Number(document.getElementById("amount").value) || 0;
+
+  /*
+    Illustrative calculator only.
+    The 20% figure is the example rate discussed
+    for the prototype and is NOT a guaranteed return.
+  */
+
+  let estimated = amount * 0.20;
+
+  document.getElementById("result").innerText =
+    "PKR " + estimated.toLocaleString("en-PK");
+
+}
+
+</script>
+
+</body>
+</html>
