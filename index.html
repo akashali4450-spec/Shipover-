@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Online Work Platform</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#f4f6f8;color:#17202a}
+header{background:#111827;color:white;padding:18px 6%;display:flex;justify-content:space-between;align-items:center}
+.logo{font-size:24px;font-weight:800}
+.nav button{margin-left:8px;padding:10px 15px;border:0;border-radius:8px;cursor:pointer}
+.hero{padding:70px 7%;background:linear-gradient(135deg,#111827,#26364f);color:white}
+.hero h1{font-size:42px;margin:0 0 14px}
+.hero p{max-width:650px;font-size:18px;line-height:1.6}
+.btn{background:#f5c542;color:#111;padding:13px 20px;border:0;border-radius:9px;font-weight:700;cursor:pointer}
+.container{max-width:1050px;margin:35px auto;padding:0 18px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:18px}
+.card{background:white;padding:22px;border-radius:14px;box-shadow:0 4px 18px #00000012}
+.card h3{margin-top:0}
+.muted{color:#68727d}
+form{max-width:460px;margin:35px auto;background:white;padding:28px;border-radius:14px;box-shadow:0 4px 18px #00000012}
+input{width:100%;padding:13px;margin:8px 0 15px;border:1px solid #ccd2d8;border-radius:8px}
+.hidden{display:none}
+.balance{font-size:30px;font-weight:800}
+.task{border-left:5px solid #f5c542}
+footer{text-align:center;padding:35px;color:#68727d}
+</style>
+</head>
+<body>
+<header>
+<div class="logo">WorkHub</div>
+<div class="nav">
+<button onclick="show('home')">Home</button>
+<button onclick="show('login')">Login</button>
+<button onclick="show('register')">Register</button>
+</div>
+</header>
+
+<section id="home">
+<div class="hero">
+<h1>Online Work Platform</h1>
+<p>Find available tasks, submit completed work, and track approved earnings from your personal dashboard.</p>
+<button class="btn" onclick="show('register')">Create Account</button>
+</div>
+<div class="container">
+<h2>How it works</h2>
+<div class="grid">
+<div class="card"><h3>1. Register</h3><p class="muted">Create your account.</p></div>
+<div class="card"><h3>2. Choose a Task</h3><p class="muted">View available tasks.</p></div>
+<div class="card"><h3>3. Submit</h3><p class="muted">Send completed work for review.</p></div>
+<div class="card"><h3>4. Get Approved</h3><p class="muted">Approved work can be reflected in your balance.</p></div>
+</div>
+</div>
+</section>
+
+<section id="register" class="hidden">
+<form onsubmit="register(event)">
+<h2>Create Account</h2>
+<label>Full Name</label><input id="rname" required>
+<label>Mobile</label><input id="rmobile" required>
+<label>Email</label><input id="remail" type="email" required>
+<label>Password</label><input id="rpass" type="password" required>
+<button class="btn" type="submit">Register</button>
+</form>
+</section>
+
+<section id="login" class="hidden">
+<form onsubmit="login(event)">
+<h2>Login</h2>
+<label>Email</label><input id="lemail" type="email" required>
+<label>Password</label><input id="lpass" type="password" required>
+<button class="btn" type="submit">Login</button>
+<p id="loginmsg" class="muted"></p>
+</form>
+</section>
+
+<section id="dashboard" class="hidden">
+<div class="container">
+<h2>User Dashboard</h2>
+<div class="grid">
+<div class="card"><p class="muted">Available Balance</p><div class="balance">PKR 0</div></div>
+<div class="card"><p class="muted">Completed Tasks</p><div class="balance">0</div></div>
+<div class="card"><p class="muted">Pending Tasks</p><div class="balance">0</div></div>
+</div>
+<h2>Available Work</h2>
+<div class="grid">
+<div class="card task">
+<h3>Sample Task</h3>
+<p>Demo task placeholder. Admin can add real work later.</p>
+<button class="btn" onclick="alert('Task selected!')">View Task</button>
+</div>
+</div>
+</div>
+</section>
+
+<footer>WorkHub Prototype • 2026</footer>
+
+<script>
+function show(id){
+['home','register','login','dashboard'].forEach(x=>document.getElementById(x).classList.add('hidden'));
+document.getElementById(id).classList.remove('hidden');
+scrollTo(0,0);
+}
+function register(e){
+e.preventDefault();
+localStorage.setItem('user',JSON.stringify({
+name:document.getElementById('rname').value,
+mobile:document.getElementById('rmobile').value,
+email:document.getElementById('remail').value,
+password:document.getElementById('rpass').value
+}));
+alert('Account created. Now login.');
+show('login');
+}
+function login(e){
+e.preventDefault();
+const u=JSON.parse(localStorage.getItem('user')||'null');
+if(u && u.email===document.getElementById('lemail').value && u.password===document.getElementById('lpass').value){
+show('dashboard');
+}else{
+document.getElementById('loginmsg').textContent='Wrong email or password.';
+}
+}
+</script>
+</body>
+</html>"""
+
+path = "/mnt/data/index.html"
+Path(path).write_text(html, encoding="utf-8")
+print(f"Created the complete HTML file: {path}")
+  
