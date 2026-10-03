@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>SHIPOVR Admin Panel</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f4f7fb;color:#14264a}
+button,input,select,textarea{font-family:inherit}
+.hidden{display:none!important}
+.login-page{min-height:100vh;display:flex;justify-content:center;align-items:center;background:#08172f}
+.login-box{width:92%;max-width:390px;background:#fff;padding:35px;border-radius:14px;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,.25)}
+.logo{width:48px;height:48px;background:#08c887;color:#fff;display:inline-flex;align-items:center;justify-content:center;border-radius:10px;font-size:28px;font-weight:bold}
+.login-box h1{margin:12px 0 2px}.login-box p{color:#7c8ba0}
+.login-box label{display:block;text-align:left;margin-top:15px;font-size:14px}
+.login-box input{width:100%;padding:13px;margin-top:6px;border:1px solid #d8e1eb;border-radius:7px}
+.login-btn{width:100%;padding:13px;border:0;border-radius:7px;background:#087af0;color:#fff;margin-top:18px;cursor:pointer;font-size:15px}
+.login-error{color:#e53935;margin-top:10px;min-height:16px}
+.app{display:none;min-height:100vh}
+.sidebar{position:fixed;left:0;top:0;bottom:0;width:238px;background:#08172f;color:#dce7f7;padding:18px 12px;display:flex;flex-direction:column;z-index:5}
+.brand{display:flex;align-items:center;gap:10px;padding:2px 5px 25px}
+.brand .logo{width:38px;height:38px;font-size:23px}.brand b{color:#fff;font-size:20px}.brand small{display:block;color:#aebbd0}
+.nav{width:100%;padding:12px;border:0;background:none;color:#d5dfef;text-align:left;border-radius:7px;cursor:pointer;margin-bottom:3px;display:flex;gap:13px;align-items:center;font-size:14px}
+.nav:hover,.nav.active{background:#06c987;color:#fff}
+.logout{margin-top:auto;background:none;color:#fff;border:0;text-align:left;padding:12px;cursor:pointer}
+.main{margin-left:238px}
+.topbar{height:64px;background:#fff;border-bottom:1px solid #e4eaf1;display:flex;align-items:center;padding:0 22px;position:sticky;top:0;z-index:4}
+.admin-tag{margin-left:auto;font-weight:bold}
+.page{display:none;padding:22px 18px}.page.active{display:block}
+.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:18px}
+.stat{color:#fff;padding:18px;border-radius:9px}.stat small{display:block;font-size:12px}.stat strong{display:block;font-size:24px;margin-top:7px}
+.blue{background:#1677ef}.green{background:#08bb78}.purple{background:#7038e8}.orange{background:#ff8612}.red{background:#e05252}
+.card{background:#fff;border:1px solid #e2e8f0;border-radius:9px;padding:18px;margin-bottom:18px}
+.card h2{font-size:16px;margin:0 0 10px}
+.table-wrap{overflow:auto}
+table{width:100%;border-collapse:collapse;min-width:640px;font-size:13px}
+th,td{padding:10px;border-bottom:1px solid #edf1f5;text-align:left;vertical-align:middle}
+th{background:#f8fafc;color:#61738e}
+.badge{display:inline-block;padding:4px 10px;border-radius:12px;font-size:11px;font-weight:bold}
+.b-green{background:#d8f8e9;color:#0c9a60}.b-orange{background:#fff0d5;color:#d77b00}.b-blue{background:#e1efff;color:#1970da}.b-red{background:#fde2e2;color:#d32f2f}
+.act{background:#087af0;color:#fff;border:0;padding:7px 12px;border-radius:6px;cursor:pointer;font-size:12px}
+.act.g{background:#08bb78}.act.r{background:#e05252}.act:disabled{background:#b9c4d2;cursor:default}
+.form{max-width:680px}.form label{display:block;margin:13px 0;font-size:14px}
+.form input,.form select,.form textarea{display:block;width:100%;padding:11px;border:1px solid #d8e1eb;border-radius:7px;margin-top:5px}
+.save-btn{background:#08bb78;color:#fff;border:0;padding:11px 18px;border-radius:6px;cursor:pointer}
+.saved{color:#08a66c;margin-left:10px}
+.plan-row{display:grid;grid-template-columns:1fr 2fr 110px 90px 90px;gap:10px;margin-bottom:10px;align-items:center}
+.modal{position:fixed;inset:0;background:rgba(8,23,47,.75);display:none;align-items:center;justify-content:center;z-index:50;padding:18px}
+.modal.open{display:flex}
+.modal-box{background:#fff;border-radius:12px;max-width:560px;width:100%;max-height:92vh;overflow:auto;padding:20px}
+.modal-box img{max-width:100%;border-radius:8px}
+.toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%);background:#14264a;color:#fff;padding:11px 22px;border-radius:24px;font-size:13px;z-index:99;display:none}
+footer{padding:18px;color:#7d8da5;font-size:11px}
+@media(max-width:950px){.sidebar{width:64px}.brand div:not(.logo),.nav span,.logout span{display:none}.nav{justify-content:center}.main{margin-left:64px}.stats{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+
+<div id="loginPage" class="login-page">
+  <div class="login-box">
+    <div class="logo">↗</div>
+    <h1>SHIPOVR</h1><p>Admin Panel</p>
+    <form id="loginForm">
+      <label>Username<input id="username" required></label>
+      <label>Password<input id="password" type="password" required></label>
+      <button class="login-btn" type="submit">Login</button>
+      <div id="loginError" class="login-error"></div>
+    </form>
+    <small>Default: Abdullah / 12345679</small>
+  </div>
+</div>
+
+<div id="app" class="app">
+<aside class="sidebar">
+  <div class="brand"><div class="logo">↗</div><div><b>SHIPOVR</b><small>Grow Together</small></div></div>
+  <button class="nav active" data-page="dashboard">⌂ <span>Dashboard</span></button>
+  <button class="nav" data-page="payments">⇪ <span>Payment Proofs</span></button>
+  <button class="nav" data-page="withdrawals">⇱ <span>Withdrawals</span></button>
+  <button class="nav" data-page="users">♟ <span>Users</span></button>
+  <button class="nav" data-page="orders">▣ <span>Orders</span></button>
+  <button class="nav" data-page="plans">▤ <span>Plans</span></button>
+  <button class="nav" data-page="tickets">● <span>Support Tickets</span></button>
+  <button class="nav" data-page="settings">⚙ <span>Settings</span></button>
+  <button class="logout" onclick="logout()">⇥ <span>Logout</span></button>
+</aside>
+
+<main class="main">
+<header class="topbar"><b>SHIPOVR Admin</b><span class="admin-tag">● Admin</span></header>
+
+<section id="dashboard" class="page active">
+  <div class="card"><h2>Platform Overview</h2>
+  <div class="stats">
+    <div class="stat blue"><small>Total Users</small><strong id="stUsers">0</strong></div>
+    <div class="stat green"><small>Total Balance</small><strong id="stBalance">0</strong></div>
+    <div class="stat orange"><small>Pending Payments</small><strong id="stPay">0</strong></div>
+    <div class="stat red"><small>Pending Withdrawals</small><strong id="stWd">0</strong></div>
+    <div class="stat purple"><small>Open Tickets</small><strong id="stTk">0</strong></div>
+  </div></div>
+  <div class="card"><h2>Latest Payment Proofs</h2><div class="table-wrap"><table>
+    <thead><tr><th>User</th><th>Plan</th><th>TID</th><th>Sender</th><th>Amount</th><th>Status</th><th>Action</th></tr></thead>
+    <tbody id="dashPay"></tbody></table></div></div>
+</section>
+
+<section id="payments" class="page"><div class="card"><h2>Payment Proofs (TID + Screenshot)</h2>
+  <div class="table-wrap"><table>
+  <thead><tr><th>User</th><th>Plan</th><th>TID</th><th>Sender</th><th>Amount</th><th>Screenshot</th><th>Status</th><th>Action</th></tr></thead>
+  <tbody id="payTable"></tbody></table></div></div></section>
+
+<section id="withdrawals" class="page"><div class="card"><h2>Withdrawal Requests</h2>
+  <div class="table-wrap"><table>
+  <thead><tr><th>User</th><th>Amount</th><th>Method</th><th>Account</th><th>Status</th><th>Action</th></tr></thead>
+  <tbody id="wdTable"></tbody></table></div></div></section>
+
+<section id="users" class="page"><div class="card"><h2>Users</h2>
+  <div class="table-wrap"><table>
+  <thead><tr><th>User ID</th><th>Name</th><th>Phone</th><th>Balance</th><th>Earned</th><th>Status</th><th>Action</th></tr></thead>
+  <tbody id="userTable"></tbody></table></div></div></section>
+
+<section id="orders" class="page"><div class="card"><h2>Orders</h2>
+  <div class="table-wrap"><table>
+  <thead><tr><th>Order ID</th><th>User</th><th>Plan</th><th>Amount</th><th>Status</th><th>Action</th></tr></thead>
+  <tbody id="orderTable"></tbody></table></div></div></section>
+
+<section id="plans" class="page"><div class="card"><h2>Plans (User Website)</h2>
+  <div id="planList"></div>
+  <h2 style="margin-top:20px">Add New Plan</h2>
+  <div class="form">
+    <label>Plan Name<input id="npName" placeholder="e.g. Shipping Starter"></label>
+    <label>Description<input id="npDesc" placeholder="What user gets"></label>
+    <label>Price (Rs)<input id="npPrice" type="number" placeholder="e.g. 400"></label>
+    <button class="save-btn" onclick="addPlan()">Add Plan</button>
+  </div></div></section>
+
+<section id="tickets" class="page"><div class="card"><h2>Support Tickets</h2>
+  <div class="table-wrap"><table>
+  <thead><tr><th>User</th><th>Subject</th><th>Message</th><th>Status</th><th>Reply</th></tr></thead>
+  <tbody id="tkTable"></tbody></table></div></div></section>
+
+<section id="settings" class="page"><div class="card form"><h2>Payment & Website Settings</h2>
+  <label>Announcement (user website banner)<input id="setAnnounce"></label>
+  <label>Easypaisa Name<input id="setEasyName"></label>
+  <label>Easypaisa Number<input id="setEasyNum"></label>
+  <label>JazzCash Name<input id="setJazzName"></label>
+  <label>JazzCash Number<input id="setJazzNum"></label>
+  <label>WhatsApp Number<input id="setWhats"></label>
+  <button class="save-btn" onclick="saveSettings()">Save Settings</button><span id="setSaved" class="saved"></span>
+</div></section>
+
+<footer>SHIPOVR Admin Panel v2.0 — Connected to backend</footer>
+</main>
+</div>
+
+<!-- screenshot modal -->
+<div class="modal" id="shotModal" onclick="if(event.target===this)closeModal()">
+  <div class="modal-box"><h2 style="margin-bottom:10px">Payment Screenshot</h2>
+  <img id="shotImg" alt="screenshot"><div style="text-align:right;margin-top:12px">
+  <button class="act" onclick="closeModal()">Close</button></div></div>
+</div>
+
+<!-- reject reason modal -->
+<div class="modal" id="reasonModal">
+  <div class="modal-box"><h2 style="margin-bottom:10px">Reject — Reason (user ko show hoga)</h2>
+  <textarea id="rejectReason" rows="3" style="width:100%;padding:11px;border:1px solid #d8e1eb;border-radius:7px" placeholder="e.g. Transaction ID not found / amount mismatch"></textarea>
+  <div style="text-align:right;margin-top:12px">
+  <button class="act" onclick="closeReason()">Cancel</button>
+  <button class="act r" id="confirmReject" style="margin-left:8px">Confirm Reject</button></div></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ================= CONFIG ================= */
+const API = localStorage.getItem("shipovr_api") || "http://localhost:3000/api";
+/* ========================================== */
+let token = sessionStorage.getItem("shipovr_admin_token") || null;
+let payData = [], wdData = [], pendingReject = null;
+
+function toast(t){const e=document.getElementById("toast");e.textContent=t;e.style.display="block";setTimeout(()=>e.style.display="none",3000);}
+async function api(path, opts={}){
+  const r = await fetch(API+path,{method:opts.method||"GET",
+    headers:{"Content-Type":"application/json",...(token?{Authorization:"Bearer "+token}:{})},
+    body:opts.body?JSON.stringify(opts.body):undefined});
+  const d = await r.json().catch(()=>({}));
+  if(!r.ok) throw new Error(d.error||("Error "+r.status));
+  return d;
+}
+function badge(s){const c={Approved:"b-green",Completed:"b-green",Active:"b-green",Open:"b-blue",Pending:"b-orange",Processing:"b-blue",Rejected:"b-red",Blocked:"b-red"}[s]||"b-blue";return `<span class="badge ${c}">${s}</span>`;}
+
+document.getElementById("loginForm").addEventListener("submit",async e=>{
+e.preventDefault();
+try{
+const d=await api("/admin/login",{method:"POST",body:{username:document.getElementById("username").value.trim(),password:document.getElementById("password").value}});
+token=d.token;sessionStorage.setItem("shipovr_admin_token",token);
+document.getElementById("loginPage").style.display="none";
+document.getElementById("app").style.display="block";
+renderAll();
+}catch(err){document.getElementById("loginError").textContent=err.message;}
+});
+function logout(){sessionStorage.removeItem("shipovr_admin_token");location.reload();}
+
+document.querySelectorAll(".nav").forEach(b=>b.addEventListener("click",()=>{
+document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+document.getElementById(b.dataset.page).classList.add("active");
+document.querySelectorAll(".nav").forEach(n=>n.classList.toggle("active",n===b));
+renderAll();
+}));
+
+async function renderAll(){
+try{
+const [st,pays,wds,users,orders,plans,tks,sets]=await Promise.all([
+api("/admin/stats"),api("/admin/payments"),api("/admin/withdrawals"),api("/admin/users"),
+api("/admin/orders"),api("/admin/plans"),api("/admin/tickets"),api("/admin/settings")]);
+payData=pays;wdData=wds;
+document.getElementById("stUsers").textContent=st.users;
+document.getElementById("stBalance").textContent=st.totalBalance;
+document.getElementById("stPay").textContent=st.pendingPayments;
+document.getElementById("stWd").textContent=st.pendingWithdrawals;
+document.getElementById("stTk").textContent=st.openTickets;
+/* payments */
+const payRow=p=>`<tr><td>${p.user_ref}</td><td>${p.plan_name||"-"}</td><td><b>${p.tid}</b></td><td>${p.sender_name}</td><td>Rs${p.amount}</td>
+${p.has_screenshot?`<td><button class="act" onclick="viewShot(${p.id})">View</button></td>`:"<td>—</td>"}
+<td>${badge(p.status)}${p.reason?`<br><small style="color:#d32f2f">${p.reason}</small>`:""}</td>
+<td>${p.status==="Pending"?`<button class="act g" onclick="approvePay(${p.id})">Approve</button> <button class="act r" onclick="askReject(${p.id})">Reject</button>`:"—"}</td></tr>`;
+document.getElementById("payTable").innerHTML=pays.map(payRow).join("")||'<tr><td colspan="8" style="color:#91a0b5">No payment proofs yet</td></tr>';
+document.getElementById("dashPay").innerHTML=pays.slice(0,6).map(p=>`<tr><td>${p.user_ref}</td><td>${p.plan_name||"-"}</td><td>${p.tid}</td><td>${p.sender_name}</td><td>Rs${p.amount}</td><td>${badge(p.status)}</td><td>${p.status==="Pending"?`<button class="act g" onclick="approvePay(${p.id})">Approve</button> <button class="act r" onclick="askReject(${p.id})">Reject</button>`:"—"}</td></tr>`).join("")||'<tr><td colspan="7" style="color:#91a0b5">No payments yet</td></tr>';
+/* withdrawals */
+document.getElementById("wdTable").innerHTML=wds.map(w=>`<tr><td>${w.user_ref}</td><td>Rs${w.amount}</td><td>${w.method}</td><td>${w.account||"-"}</td><td>${badge(w.status)}</td>
+<td>${w.status==="Pending"?`<button class="act g" onclick="setWd(${w.id},'Approved')">Approve</button> <button class="act r" onclick="setWd(${w.id},'Rejected')">Reject</button>`:"—"}</td></tr>`).join("")||'<tr><td colspan="6" style="color:#91a0b5">No withdrawals yet</td></tr>';
+/* users */
+document.getElementById("userTable").innerHTML=users.map(u=>`<tr><td>${u.user_id}</td><td>${u.name}</td><td>${u.phone}</td><td>Rs${u.balance}</td><td>Rs${u.earned}</td><td>${badge(u.status)}</td>
+<td><select onchange="setUserStatus('${u.user_id}',this.value)">${["Active","Pending","Blocked"].map(s=>`<option ${s===u.status?"selected":""}>${s}</option>`).join("")}</select></td></tr>`).join("");
+/* orders */
+document.getElementById("orderTable").innerHTML=orders.map(o=>`<tr><td>${o.order_id}</td><td>${o.user_ref}</td><td>${plans.find(p=>p.id===o.plan_id)?.name||"-"}</td><td>Rs${o.amount}</td><td>${badge(o.status)}</td>
+<td>${o.status!=="Completed"?`<button class="act g" onclick="setOrder(${o.id},'Completed')">Complete</button>${o.status==="Pending"?"":""}`:"—"}</td></tr>`).join("")||'<tr><td colspan="6" style="color:#91a0b5">No orders yet</td></tr>';
+/* plans */
+document.getElementById("planList").innerHTML=plans.map(p=>`
+<div class="plan-row"><input value="${p.name}" id="pln${p.id}" style="padding:9px;border:1px solid #d8e1eb;border-radius:7px">
+<input value="${p.description||""}" id="pld${p.id}" style="padding:9px;border:1px solid #d8e1eb;border-radius:7px">
+<input value="${p.price}" id="plp${p.id}" type="number" style="padding:9px;border:1px solid #d8e1eb;border-radius:7px">
+${badge(p.active?"Active":"Hidden")}
+<button class="act g" onclick="updPlan(${p.id})">Save</button>
+<button class="act r" onclick="delPlan(${p.id})">Delete</button></div>`).join("")||'<p style="color:#91a0b5">No plans yet — add below.</p>';
+/* tickets */
+document.getElementById("tkTable").innerHTML=tks.map(t=>`<tr><td>${t.user_ref}</td><td>${t.subject}</td><td style="max-width:260px">${t.message}${t.reply?`<br><small style="color:#0c9a60"><b>Reply:</b> ${t.reply}</small>`:""}</td><td>${badge(t.status)}</td>
+<td>${t.status==="Open"?`<input id="tkr${t.id}" placeholder="Reply..." style="padding:7px;border:1px solid #d8e1eb;border-radius:6px;width:170px"> <button class="act g" onclick="replyTicket(${t.id})">Send</button>`:"—"}</td></tr>`).join("")||'<tr><td colspan="5" style="color:#91a0b5">No tickets yet</td></tr>';
+/* settings */
+document.getElementById("setAnnounce").value=sets.announcement||"";
+document.getElementById("setEasyName").value=sets.easypaisa_name||"";
+document.getElementById("setEasyNum").value=sets.easypaisa_number||"";
+document.getElementById("setJazzName").value=sets.jazzcash_name||"";
+document.getElementById("setJazzNum").value=sets.jazzcash_number||"";
+document.getElementById("setWhats").value=sets.whatsapp||"";
+}catch(e){toast(e.message);}
+}
+
+/* actions */
+async function approvePay(id){try{await api("/admin/payment/"+id,{method:"PUT",body:{status:"Approved"}});toast("Payment approved — plan activated");renderAll();}catch(e){toast(e.message);}}
+function askReject(id){pendingReject=id;document.getElementById("rejectReason").value="";document.getElementById("reasonModal").classList.add("open");}
+function closeReason(){pendingReject=null;document.getElementById("reasonModal").classList.remove("open");}
+document.getElementById("confirmReject").addEventListener("click",async()=>{
+if(!pendingReject)return;
+try{await api("/admin/payment/"+pendingReject,{method:"PUT",body:{status:"Rejected",reason:document.getElementById("rejectReason").value.trim()}});
+toast("Payment rejected");closeReason();renderAll();}catch(e){toast(e.message);}});
+async function setWd(id,st){try{await api("/admin/withdrawal/"+id,{method:"PUT",body:{status:st}});toast("Withdrawal "+st);renderAll();}catch(e){toast(e.message);}}
+async function setUserStatus(uid,st){try{await api("/admin/user/"+uid,{method:"PUT",body:{status:st}});toast("User "+st);renderAll();}catch(e){toast(e.message);}}
+async function setOrder(id,st){try{await api("/admin/order/"+id,{method:"PUT",body:{status:st}});toast("Order "+st);renderAll();}catch(e){toast(e.message);}}
+async function addPlan(){try{
+await api("/admin/plans",{method:"POST",body:{name:document.getElementById("npName").value.trim(),description:document.getElementById("npDesc").value.trim(),price:Number(document.getElementById("npPrice").value)}});
+["npName","npDesc","npPrice"].forEach(i=>document.getElementById(i).value="");toast("Plan added");renderAll();}catch(e){toast(e.message);}}
+async function updPlan(id){try{
+await api("/admin/plans/"+id,{method:"PUT",body:{name:document.getElementById("pln"+id).value,description:document.getElementById("pld"+id).value,price:Number(document.getElementById("plp"+id).value),active:1}});
+toast("Plan saved");renderAll();}catch(e){toast(e.message);}}
+async function delPlan(id){if(!confirm("Delete this plan?"))return;try{await api("/admin/plans/"+id,{method:"DELETE"});toast("Plan deleted");renderAll();}catch(e){toast(e.message);}}
+async function replyTicket(id){try{
+await api("/admin/ticket/"+id,{method:"PUT",body:{reply:document.getElementById("tkr"+id).value.trim(),status:"Completed"}});
+toast("Reply sent");renderAll();}catch(e){toast(e.message);}}
+async function saveSettings(){try{
+await api("/admin/settings",{method:"PUT",body:
